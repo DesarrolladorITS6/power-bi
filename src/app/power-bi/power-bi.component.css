@@ -1,0 +1,6 @@
+powerbi-report > .report-container{
+  height: 100vh !important;
+}
+iframe{
+  height: 100vh;
+}

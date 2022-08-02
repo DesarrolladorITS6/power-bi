@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { IReportEmbedConfiguration, models, Page, Report, service, VisualDescriptor } from 'powerbi-client';
 import { PowerBIReportEmbedComponent } from 'powerbi-client-angular';
+import { PowerBiService } from '../services/power-bi.service';
 
 @Component({
   selector: 'app-power-bi',
@@ -16,26 +17,38 @@ export class PowerBiComponent implements OnInit {
     embedUrl: undefined,
     accessToken: undefined,
     tokenType: models.TokenType.Embed,
-    hostname: "https://app.powerbi.com"
+    hostname: "https://app.powerbi.com",
+    settings: {
+      layoutType: models.LayoutType.Custom,
+      customLayout: {
+        displayOption: models.DisplayOption.FitToWidth
+      }
+    }
   };
 
+  reportClass = 'report-container'
+
   id = '6cae223a-89de-45f2-ac9d-a16aadf37344';
-  token = 'H4sIAAAAAAAEACWXxwr0SBKE3-W_akDeDcxB3qvl3U3et7xd9t23h73UoUiKIPkiMus_f6z0Gaa0-PP3n-NtWAYIuhByZ75npDlJh1E7lP37VNPhXul2Z-aHA8NvU3SdoQ2SxX3PBkc-FkE4g2-gaFReLJpF8osj7ntqx-lMgN82vdBtCoFkpd5AOgnynpQTIh52UPE58G0KeXtJGCfPJsukEb8CQrnV9VzwA8Xn6ZmFkN2f3zSkRCagjzLTSJDBP72huVTEBMKzDyCU4k5RZFOyT2UJF_QWaDIxxhbz5daPwPBS98z0CTpncvOIHySZ8bSDbIOgd07dPppwDW9k2pE_9V2VzMTQ1zOJiXgteEKw2i3Ok75eUx_HSnm0PZpKeSJf_a5Vq25BHikcGvn8tHiaT8DJGVYgLg6tczHUhfMKLFUZ4W0yQ-Tcbex-nEy0Q82ljn65XJwM4VlWPsCXT7hGkRRd40ScnF1Lkm4XJSVfqkg2WDMKLRJqWPygB1vR0uUD_jFr9yqpd2SSXO4N8dG5_9Y-DYqZuZcdEbGVmartBeRWDEUuvB8f5XBL0WncJjrqQ9HQ84y6W6_XchPkR1Rwm497D5baNa4wCYc0qvhEkHscYpmUQayjBoGDcTkPxEjybAVuawglJ4vwi76gmgJ0HeIkwhyTnZBqACzE1toD-7w8eQoo7qnEnBYkMMNa-tVU35GaJe9OFUAHFBmPkKTkBv5zHe7T1_0ldxOqdrttmAwlM3uyNFNv5cSth6HQl0Qo8JBV162NYCqPd3D4hQUY58u0lADWhlPNkqQm4ggvQKxTKT1huzFsjkRVcPnaZttKbGjOe89eeubvuxAISzMEuYnKDinQnRlfDjedcwo-PrYIDJ24sUB_8MniheT7SIJSztwlf4tuUvYXvCcZIXBq_kh5zqOBFDIvkRXTHJqVRpWpoEY73oXvT0UchcfcoFz6NRY5sN4kjRoul8omZ9ogpZISQBHPijAUNAP7Jj1JAqaesYage-X4KvBLa9s84tub8LI9MdGTD_mDkc5wQHxeHRXpE4kOmuxnp6L-5deYP2b4N63ZH6OKnOB4D3qHhBXrlSmrPaL-OntWp7GOjEbbuBsbOLLQuynKp7x8Z50ZMuE20dUjxz8OD7xTjaK8Ihb1hkZYa_LVuY0NVAe20CXcoMmvUcgQ5FsPMIi_pADzw656oOe4uZXdsieQSdoUFto7tzWf823u66IGzzndbB6V2Slbz8rxNJ7K85zYHsHXHzVvO4D-WUCUOYpz5u5B7Qtwzcov3JXMTG7kDxb-okqDPyHaXU4_5b5eEnFniuSCSGz-owHippMe188VqINJEHW1YzsDVBEqzTyegx9TWXVaoOeVcXY1HpFBIO9vfuXiqB64O9FLiB3XRF4rIMjZdHSIF8B9BX_7fr-OJVeTBu0G1kfvMP9UGZCimjB4ba7TTyIwR0vjBhTBPg_FkyiyutE1Z0NYbTud-TqOJHrzGzYT2mz1onJOIZbhJGS423y1E7-K4IYkli4HUL6mW4S-Tg-i3YE6wmii84layCs6LFHckPWNKIqsvxI-VoTCTM3o55sVLyvjbhwjzqOXvUKITdb94JIMyU5swasizMsX4onChMgS2HQKjxh2PQapfJ6rsBDJ2T7fwNCLQ36tgLtF_fjEcfz9yna1xXdsn4rGrzHkKstYLWjkWT9WfQZGtQLM9-QMKjikM7EPFdKe96SUk9caMgUFDw0-IyStLhd4TmZxI7Oj8his_f3iTi_LkJ9gQsYxeJkoebE0Yk7AIrnCDYbKVIrRryUoZxQN47dzzVq921d2WgAxF58hLU5ulqh9Un9NcbTjy6gdG-BxcTt-fUwW7SZhyEGihag5pCJgDhj2Qei6npbUXVAhCMXiAhZ7-_v-8HqIDZgnFxYPAF6rflB5VGzu-ClcXhG7f_H8YN_dO12Cayw8jk872OFM9LqyHiBt6hNgyM9RqL5UQrqfhjO8dH-K4pc1Q6AF3aAE6wUAxutXtlm7yAkC321uDmGHt1QCil_shZ_1SCipl-hHN-l8wrMWGOKx2GQqf9Cr_7KGka6RH3FG7iicq9kC1jTUUCbgzzEmI9Jv_VovbS-E7ZP0OzdrXDDMV83pKJcIO7pQ0hlTL9qIYRYLQRyzrNzcTD2S7uV9qoKvAJiaeBRiW1lRxQL1D-7ZmZLQlNVRNKGje7-wkiUCDKi--Qs33O8dOHIztg2-VhKTJom6DTq0FheVMz2ZbUDW7TZVweHqU44tPbeFNOtk-yvS4g-AHMdC47BvwYK_3Zthsj3CSJ_D_JYyjaM0W4SJluqWqmqbKNVn4CeuAGKZ8iVBayx6VGzo6m4NWhHqrgKy-J41h4EtY3qV3qpmxGscR2Ya-EXirzpyMpPemFDSlN4QD-SDvQZ0Un7RtTcz7E6L9nkNalU50a3igw2DtAnGFgS4g9ytopcdAg6nS9M28fr0EU-TKTf7vhb1UrPC0OrTiyXTYKJ5fbgFVYMZg3w0vULqhzfJA-nPr3oXBYoV8pUuL_5EaA9jp4EU_PwiL7lCIuDNdd4ihe64qf1ydfmUZkJyJ1j78EEejFGx7cXNYGYZTLmqVEWoO-bBQMAxaWMcQ-DItb9wzxRdW9P4B8ei5qXMQ3wB80pm_PnrD7c-8z5p5fNbB8s7q7XBq4mzGXEdxq8kc_VT9L9GGupKHIpc5qJlws_KNOnG2utYT0dyvxEBg1CORm1vvRYE31XwkuRDWYCadzhD2mS2lR3Qb1R4lXrzxzbkZZHWNdVTdX0a0_XD7rusKpsaTDlkoT7Lv_WAzr6s57EZGGrebJraOf4OgD17W2ERQAL8J4adDSmU9XkB5ITtrog15AzRc_emQwGt2JmncZcFcvFq1wDlnDJOoQWjDwM3cN99-0gG6BlpvXSOaOgiRSMz3HbIwRMlNwY3EH3YksNjftcFcK0zIeltRtKkKSABV_KRfa_mYxcgP3ZW5Fgg_MuPTH4vIU4BciNkFoEuzrKuf_75t83P3JSrEvy6XDUdm003vWJlRZcrCMRShv6_ym3rb7ofa_kr8z6--Olvx0kIpb-BImiQg6Cblk8dcg0xY10F1SnJg5wEXXYY_Mi9TsQxoAl8kQq12Bbz6qVVnQ83TYB0HztBnNf27KyH2q2HTF8upqGfm2ogA3rv5JpPG3oVphFdroX0XdSAAAdWemynA03exbRH8IO-VaJ9yR7PmZEiOD40GwNHStf7jSjKEKEzNS7tt8BtFz45JHaF9GymFHa9gxunMseyqRWxMXEWAmUJ86n_8LbVOziN2a6EmITQXjdG-HMYg9bM-kN7cEiCrXfR7K5Wbic3ysmf-_v7fMCLr5Y7J4HzMPv9OhQTBFt36JNnMeL0Vz-JnmhWRcI1zWaDEu0Ho-ue-tfm__4PlY_DLAINAAA=.eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XQUJJLVBBQVMtMS1TQ1VTLXJlZGlyZWN0LmFuYWx5c2lzLndpbmRvd3MubmV0IiwiZW1iZWRGZWF0dXJlcyI6eyJtb2Rlcm5FbWJlZCI6ZmFsc2V9fQ==';
   embedUrl = 'https://app.powerbi.com/reportEmbed?reportId=6cae223a-89de-45f2-ac9d-a16aadf37344&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XQUJJLVBBQVMtMS1TQ1VTLXJlZGlyZWN0LmFuYWx5c2lzLndpbmRvd3MubmV0IiwiZW1iZWRGZWF0dXJlcyI6eyJtb2Rlcm5FbWJlZCI6dHJ1ZSwiYW5ndWxhck9ubHlSZXBvcnRFbWJlZCI6dHJ1ZSwiY2VydGlmaWVkVGVsZW1ldHJ5RW1iZWQiOnRydWUsInVzYWdlTWV0cmljc1ZOZXh0Ijp0cnVlLCJza2lwWm9uZVBhdGNoIjp0cnVlfX0%3d';
 
 
 
-  constructor() { }
+  constructor(private PowerBiservice: PowerBiService) { }
 
   ngOnInit(): void {
-    this.reportConfig = {
-      type: 'report',
-      id: this.id,
-      embedUrl: this.embedUrl,
-      tokenType: models.TokenType.Embed,
-      accessToken: this.token,
-      hostname: "https://app.powerbi.com"
-    }
+    this.PowerBiservice.getReport().subscribe(token => {
+      console.log(token);
+      this.reportConfig = {
+        type: 'report',
+        id: this.id,
+        embedUrl: this.embedUrl,
+        tokenType: models.TokenType.Embed,
+        accessToken: token,
+        hostname: "https://app.powerbi.com"
+      }
+
+    });
+
   }
 }
 export interface ConfigResponse {
