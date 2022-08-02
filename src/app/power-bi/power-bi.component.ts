@@ -37,7 +37,6 @@ export class PowerBiComponent implements OnInit {
 
   ngOnInit(): void {
     this.PowerBiservice.getReport().subscribe(token => {
-      console.log(token);
       this.reportConfig = {
         type: 'report',
         id: this.id,
